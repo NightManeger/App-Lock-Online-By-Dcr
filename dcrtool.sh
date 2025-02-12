@@ -9,15 +9,35 @@ CYAN='\033[1;36m'
 WHITE='\033[1;37m'
 
 # Key Server
-KEY_SERVER="https://raw.githubusercontent.com/NightManeger/App-Lock-Online-By-Dcr/main/Password.html"
+KEY_SERVER="https://raw.githubusercontent.com/NightManeger/App-Lock-Online-By-Dcr/refs/heads/main/Password.html"
 
 # Telegram Link
 TELEGRAM_LINK="https://t.me/DCR_OWNER"
 
-# Function to Check Key Online
+# 🔹 Self-Destruction Feature - Prevent Unauthorized Modifications
+SELF_PATH=$(realpath "$0")  # Get the full script path
+ORIGINAL_HASH="diff dcrtool.sh <(curl -s "https://raw.githubusercontent.com/NightManeger/App-Lock-Online-By-Dcr/main/dcrtool.sh")
+"
+
+# Function to Calculate Current Script Hash
+calculate_hash() {
+    sha256sum "$SELF_PATH" | awk '{print $1}'
+}
+
+# Check if the Script was Modified
+if [[ "$(calculate_hash)" != "$ORIGINAL_HASH" ]]; then
+    echo -e "${RED}⚠️ WARNING: Script modification detected!${NOCOLOR}"
+    echo -e "${RED}❌ Tool will now self-destruct...${NOCOLOR}"
+    sleep 2
+    rm -f "$SELF_PATH"  # Delete the script
+    exit 1
+fi
+
+# Function to Check Key Online (Forces Fresh Fetch)
 check_key() {
     local KEY="$1"
-    local VALID_KEYS=$(curl -s "$KEY_SERVER" | tr -d '\r')
+    # Fetch the key with cache bypass
+    local VALID_KEYS=$(curl -s -H 'Cache-Control: no-cache, no-store' "$KEY_SERVER" | tr -d '\r')
 
     if [[ "$VALID_KEYS" == *"$KEY"* ]]; then
         return 0  # Key Verified
